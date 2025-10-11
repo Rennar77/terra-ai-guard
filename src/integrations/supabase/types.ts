@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      land_data: {
+        Row: {
+          ai_recommendation: string | null
+          created_at: string | null
+          degradation_level: string | null
+          id: string
+          latitude: number
+          location_name: string
+          longitude: number
+          ndvi_score: number | null
+          soil_moisture: number | null
+          temperature: number | null
+          whatsapp_status: boolean | null
+        }
+        Insert: {
+          ai_recommendation?: string | null
+          created_at?: string | null
+          degradation_level?: string | null
+          id?: string
+          latitude: number
+          location_name: string
+          longitude: number
+          ndvi_score?: number | null
+          soil_moisture?: number | null
+          temperature?: number | null
+          whatsapp_status?: boolean | null
+        }
+        Update: {
+          ai_recommendation?: string | null
+          created_at?: string | null
+          degradation_level?: string | null
+          id?: string
+          latitude?: number
+          location_name?: string
+          longitude?: number
+          ndvi_score?: number | null
+          soil_moisture?: number | null
+          temperature?: number | null
+          whatsapp_status?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
