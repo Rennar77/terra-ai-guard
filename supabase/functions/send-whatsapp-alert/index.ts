@@ -20,7 +20,25 @@ serve(async (req) => {
   }
 
   try {
-    const { phone, locationName, degradationLevel, aiRecommendation, floodRisk, droughtRisk }: AlertRequest = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error('Failed to parse request body:', e);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { phone, locationName, degradationLevel, aiRecommendation, floodRisk, droughtRisk }: AlertRequest = body;
+
+    if (!phone || !locationName) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required parameters: phone and locationName' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');

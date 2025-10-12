@@ -20,7 +20,25 @@ serve(async (req) => {
   }
 
   try {
-    const { locationName, ndviScore, soilMoisture, temperature, latitude, longitude }: AIRequest = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error('Failed to parse request body:', e);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { locationName, ndviScore, soilMoisture, temperature, latitude, longitude }: AIRequest = body;
+
+    if (!locationName || latitude === undefined || longitude === undefined) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required parameters: locationName, latitude, and longitude' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
