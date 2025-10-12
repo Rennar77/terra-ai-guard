@@ -1,7 +1,7 @@
-# Welcome to your Lovable project
+# GAIA SENTINEL
 
 ## Project info
-
+inspired by “Gaia,” the Earth goddess — symbolic and strong
 **URL**: https://lovable.dev/projects/06fce397-443d-4d21-921a-583daf83741b
 
 ## How can I edit this code?
