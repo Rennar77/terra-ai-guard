@@ -1,1 +1,10 @@
 project_id = "xtctdkfhpluhcotxzfwk"
+
+[functions.send-whatsapp-alert]
+verify_jwt = false
+
+[functions.fetch-nasa-data]
+verify_jwt = false
+
+[functions.generate-ai-recommendation]
+verify_jwt = false

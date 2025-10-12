@@ -19,6 +19,8 @@ export type Database = {
           ai_recommendation: string | null
           created_at: string | null
           degradation_level: string | null
+          drought_risk: string | null
+          flood_risk: string | null
           id: string
           latitude: number
           location_name: string
@@ -32,6 +34,8 @@ export type Database = {
           ai_recommendation?: string | null
           created_at?: string | null
           degradation_level?: string | null
+          drought_risk?: string | null
+          flood_risk?: string | null
           id?: string
           latitude: number
           location_name: string
@@ -45,6 +49,8 @@ export type Database = {
           ai_recommendation?: string | null
           created_at?: string | null
           degradation_level?: string | null
+          drought_risk?: string | null
+          flood_risk?: string | null
           id?: string
           latitude?: number
           location_name?: string

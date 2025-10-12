@@ -2,15 +2,23 @@ import { Droplets, Thermometer, Cloud, Leaf } from "lucide-react";
 import DataCard from "@/components/DataCard";
 import MapView from "@/components/MapView";
 import AIRecommendation from "@/components/AIRecommendation";
+import LandDataTable from "@/components/LandDataTable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { useLandData } from "@/hooks/useLandData";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { landData, loading, sendAlert } = useLandData();
 
-  // Mock data - will be replaced with real API data
-  const mockData = {
+  // Calculate aggregate data from all entries
+  const aggregateData = landData.length > 0 ? {
+    ndvi: landData.reduce((sum, entry) => sum + (entry.ndvi_score || 0), 0) / landData.length,
+    soilMoisture: landData.reduce((sum, entry) => sum + (entry.soil_moisture || 0), 0) / landData.length,
+    temperature: landData.reduce((sum, entry) => sum + (entry.temperature || 0), 0) / landData.length,
+    rainfall: 125, // Mock data - can be extended with weather API
+  } : {
     ndvi: 0.67,
     soilMoisture: 34,
     rainfall: 125,
@@ -47,22 +55,22 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <DataCard
             title="Vegetation Index (NDVI)"
-            value={mockData.ndvi}
+            value={aggregateData.ndvi.toFixed(2)}
             icon={Leaf}
             trend="up"
-            description="+0.08 from last month"
+            description={landData.length > 0 ? `Average across ${landData.length} locations` : "No data"}
           />
           <DataCard
             title="Soil Moisture"
-            value={mockData.soilMoisture}
+            value={Math.round(aggregateData.soilMoisture)}
             unit="%"
             icon={Droplets}
             trend="neutral"
-            description="Stable levels"
+            description="Average levels"
           />
           <DataCard
             title="Rainfall Forecast"
-            value={mockData.rainfall}
+            value={aggregateData.rainfall}
             unit="mm"
             icon={Cloud}
             trend="up"
@@ -70,11 +78,11 @@ const Dashboard = () => {
           />
           <DataCard
             title="Temperature"
-            value={mockData.temperature}
+            value={Math.round(aggregateData.temperature)}
             unit="°C"
             icon={Thermometer}
             trend="up"
-            description="+2°C above average"
+            description="Average temperature"
           />
         </div>
 
@@ -88,19 +96,23 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Climate Risk Chart Placeholder */}
+        {/* Land Data Monitoring */}
         <div className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle>Climate Risk Trends</CardTitle>
-              <CardDescription>Historical and projected degradation levels</CardDescription>
+              <CardTitle>Location Monitoring & Alerts</CardTitle>
+              <CardDescription>
+                Track land health across locations and send WhatsApp alerts for critical conditions
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  Chart visualization will appear here
-                </p>
-              </div>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <p className="text-muted-foreground">Loading land data...</p>
+                </div>
+              ) : (
+                <LandDataTable data={landData} onSendAlert={sendAlert} />
+              )}
             </CardContent>
           </Card>
         </div>
