@@ -2,6 +2,9 @@
 
 ## Project info
 inspired by “Gaia,” the Earth goddess — symbolic and strong
+
+pitch deck 
+https://www.canva.com/design/DAG1lojPOGE?ui=eyJLIjp7IkEiOiIwNjNlMjJkOS1lMTJmLTQ1ODktODhmYi0yNTA4YmMzZDU5OTkifX0
 **URL**: https://lovable.dev/projects/06fce397-443d-4d21-921a-583daf83741b
 
 ## How can I edit this code?
