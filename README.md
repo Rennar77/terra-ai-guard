@@ -1,4 +1,4 @@
-# GAIA SENTINEL
+# GAIAGUARD
 
 ## Project info
 inspired by “Gaia,” the Earth goddess — symbolic and strong
