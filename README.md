@@ -1,76 +1,70 @@
-# GAIAGUARD
+# 🌍 GAIAGUARD
+GaiaGuard — your AI guardian for the planet
+Inspired by “Gaia,” the Earth Goddess — Symbolic, Strong, and Restorative.
 
-## Project info
-inspired by “Gaia,” the Earth goddess — symbolic and strong
-
-pitch deck 
-https://www.canva.com/design/DAG1lojPOGE?ui=eyJLIjp7IkEiOiIwNjNlMjJkOS1lMTJmLTQ1ODktODhmYi0yNTA4YmMzZDU5OTkifX0
-**URL**: https://lovable.dev/projects/06fce397-443d-4d21-921a-583daf83741b
-
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/06fce397-443d-4d21-921a-583daf83741b) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+Predict. Restore. Protect.
+AI-driven intelligence for climate-smart land restoration and ecosystem monitoring.
 ```
 
-**Edit a file directly in GitHub**
+# 🧠 Overview
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+GaiaGuard empowers communities and environmentalists to act early against land degradation, droughts, and floods.
+It combines satellite imagery, climate intelligence, and AI analysis to identify stressed ecosystems, recommend restoration actions, and send early warnings to local users.
 
-**Use GitHub Codespaces**
+`🌱 Harnessing data to heal the Earth.`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🚀 Key Features
 
-## What technologies are used for this project?
+🗺️ Interactive Map (Mapbox) – explore real-time vegetation and weather conditions across regions.
 
-This project is built with:
+🤖 AI-Powered Restoration Plans – receive actionable insights for land recovery and reforestation.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+🌦️ Climate Forecasting (NASA + OpenWeather) – monitor early signs of droughts or flood-prone zones.
 
-## How can I deploy this project?
+🔐 User Login & Signup (Supabase) – track and save your analyzed locations securely.
 
-Simply open [Lovable](https://lovable.dev/projects/06fce397-443d-4d21-921a-583daf83741b) and click on Share -> Publish.
+🧾 Smart Data Management – automatically logs location data and AI recommendations for reference.
 
-## Can I connect a custom domain to my Lovable project?
+💬 WhatsApp Alerts (Twilio) – feature under active development for automated community notifications.
 
-Yes, you can!
+# 🛠️ Current Status
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+✅ Core functionality and interactive map are live.
+⚙️ Note: After analyzing a new location, please reload the map to view the updated city or region.
+🌍 NDVI and weather data integrate dynamically from NASA and OpenWeather APIs.
+💬 WhatsApp alert system is partially integrated and will be fully functional in the next iteration.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+# 🧩 Tech Stack
+Layer	Technology
+Frontend	React + Vite + TailwindCSS + shadcn-ui
+Backend	Supabase (Database + Auth)
+Mapping	Mapbox
+Data APIs	NASA EarthData, OpenWeather
+AI Models	HuggingFace
+Messaging	Twilio WhatsApp API (under active testing)
+🎯 Pitch Deck
+
+📄 View GaiaGuard Pitch Deck on Canva [https://www.canva.com/design/DAG1lojPOGE/p3RLtrt2Il-c69VjmqPQuA/edit?ui=eyJLIjp7IkEiOiIwNjNlMjJkOS1lMTJmLTQ1ODktODhmYi0yNTA4YmMzZDU5OTkifX0]
+
+# 🌐 Live App
+
+🔗 https://terra-ai-guard.lovable.app/
+
+# ⚙️ How It Works
+
+Sign Up or Log In – create your GaiaGuard account.
+
+Select a Location – explore or choose any point on the map.
+
+Analyze – AI processes satellite and climate data to assess land health.
+
+View Insights – see vegetation score, weather forecast, and restoration plan.
+
+(Coming Soon) Receive WhatsApp alerts for high-risk or degrading areas.
+
+# 🤝 Credits
+
+Built by Renard Owiti for a Climate Innovation Hackathon 🌱
+Powered by:
+NASA, OpenWeather, Mapbox, Supabase, HuggingFace, and Twilio
