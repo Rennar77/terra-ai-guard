@@ -2,10 +2,10 @@
 GaiaGuard — your AI guardian for the planet
 Inspired by “Gaia,” the Earth Goddess — Symbolic, Strong, and Restorative.
 
-```
+``
 Predict. Restore. Protect.
 AI-driven intelligence for climate-smart land restoration and ecosystem monitoring.
-```
+``
 
 # 🧠 Overview
 
