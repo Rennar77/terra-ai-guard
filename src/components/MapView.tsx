@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const MapView = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -23,19 +24,20 @@ const MapView = () => {
       if (!mapContainer.current || map.current) return;
 
       try {
-        const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-
-        if (!mapboxToken) {
-          console.error('Mapbox token not found');
+        // Fetch token from authenticated edge function
+        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        
+        if (error || !data?.token) {
+          console.error('Mapbox token error:', error);
           toast({
             title: 'Configuration Error',
-            description: 'Mapbox token not configured',
+            description: 'Unable to load map configuration',
             variant: 'destructive',
           });
           return;
         }
 
-        mapboxgl.accessToken = mapboxToken;
+        mapboxgl.accessToken = data.token;
 
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
