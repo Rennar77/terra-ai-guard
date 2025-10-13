@@ -43,20 +43,20 @@ const Hero = () => {
           <Button 
             variant="hero" 
             size="lg"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/auth')}
             className="text-lg px-8 py-6"
           >
             <TrendingUp className="mr-2 h-5 w-5" />
-            Explore Land Health
+            Get Started
           </Button>
           <Button 
             variant="outline" 
             size="lg"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/auth')}
             className="text-lg px-8 py-6 border-white text-white hover:bg-white hover:text-primary"
           >
             <Shield className="mr-2 h-5 w-5" />
-            Get Restoration Plan
+            Sign In
           </Button>
         </div>
 

@@ -28,6 +28,7 @@ export type Database = {
           ndvi_score: number | null
           soil_moisture: number | null
           temperature: number | null
+          user_id: string | null
           whatsapp_status: boolean | null
         }
         Insert: {
@@ -43,6 +44,7 @@ export type Database = {
           ndvi_score?: number | null
           soil_moisture?: number | null
           temperature?: number | null
+          user_id?: string | null
           whatsapp_status?: boolean | null
         }
         Update: {
@@ -58,6 +60,7 @@ export type Database = {
           ndvi_score?: number | null
           soil_moisture?: number | null
           temperature?: number | null
+          user_id?: string | null
           whatsapp_status?: boolean | null
         }
         Relationships: []

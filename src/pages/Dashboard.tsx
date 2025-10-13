@@ -1,4 +1,5 @@
-import { Droplets, Thermometer, Cloud, Leaf } from "lucide-react";
+import { Droplets, Thermometer, Cloud, Leaf, LogOut } from "lucide-react";
+import { useEffect } from "react";
 import DataCard from "@/components/DataCard";
 import MapView from "@/components/MapView";
 import AIRecommendation from "@/components/AIRecommendation";
@@ -7,10 +8,35 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useLandData } from "@/hooks/useLandData";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { landData, loading, sendAlert } = useLandData();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   // Calculate aggregate data from all entries
   const aggregateData = landData.length > 0 ? {
@@ -35,9 +61,16 @@ const Dashboard = () => {
               <Leaf className="h-6 w-6 text-primary" />
               <h1 className="text-2xl font-bold">GaiaGuard</h1>
             </div>
-            <Button variant="ghost" onClick={() => navigate('/')}>
-              Home
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">{user.email}</span>
+              <Button variant="ghost" onClick={() => navigate('/')}>
+                Home
+              </Button>
+              <Button variant="ghost" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
