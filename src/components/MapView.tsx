@@ -23,16 +23,19 @@ const MapView = () => {
       if (!mapContainer.current || map.current) return;
 
       try {
-        // Fetch token from edge function
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-mapbox-token`);
-        const { token } = await response.json();
+        const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-        if (!token) {
+        if (!mapboxToken) {
           console.error('Mapbox token not found');
+          toast({
+            title: 'Configuration Error',
+            description: 'Mapbox token not configured',
+            variant: 'destructive',
+          });
           return;
         }
 
-        mapboxgl.accessToken = token;
+        mapboxgl.accessToken = mapboxToken;
 
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
