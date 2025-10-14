@@ -7,11 +7,12 @@ const corsHeaders = {
 
 interface AIRequest {
   locationName: string;
+  latitude: number;
+  longitude: number;
   ndviScore?: number;
   soilMoisture?: number;
   temperature?: number;
-  latitude: number;
-  longitude: number;
+  rainfall?: number;
 }
 
 serve(async (req) => {
@@ -20,28 +21,27 @@ serve(async (req) => {
   }
 
   try {
-    let body;
-    try {
-      body = await req.json();
-    } catch (e) {
-      console.error('Failed to parse request body:', e);
+    const body = await req.json();
+    const { 
+      locationName, 
+      latitude, 
+      longitude, 
+      ndviScore = 0.5, 
+      soilMoisture = 50, 
+      temperature = 20,
+      rainfall = 0
+    }: AIRequest = body;
+
+    if (!locationName || !latitude || !longitude) {
       return new Response(
-        JSON.stringify({ error: 'Invalid request body' }),
+        JSON.stringify({ error: 'Missing required parameters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { locationName, ndviScore, soilMoisture, temperature, latitude, longitude }: AIRequest = body;
-
-    if (!locationName || latitude === undefined || longitude === undefined) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required parameters: locationName, latitude, and longitude' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
+    const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    
+    if (!apiKey) {
       console.warn('LOVABLE_API_KEY not configured, returning fallback recommendation');
       return new Response(
         JSON.stringify({
@@ -54,105 +54,98 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Generating AI recommendation for ${locationName}`);
+    const context = `You are an environmental AI assistant specialized in land restoration and climate risk assessment.
 
-    // Prepare context for AI analysis
-    const context = `
-Location: ${locationName} (${latitude}, ${longitude})
-NDVI Score: ${ndviScore !== undefined ? ndviScore.toFixed(2) : 'N/A'}
-Soil Moisture: ${soilMoisture !== undefined ? `${soilMoisture}%` : 'N/A'}
-Temperature: ${temperature !== undefined ? `${temperature}°C` : 'N/A'}
+Analyze the following location data and provide a comprehensive assessment:
 
-Analyze this land data and provide a structured assessment including:
-1. Degradation level (low/moderate/high)
-2. Specific restoration recommendations
-3. Flood risk assessment (low/moderate/high)
-4. Drought risk assessment (low/moderate/high)
+Location: ${locationName}
+Coordinates: ${latitude}, ${longitude}
+NDVI Score: ${ndviScore} (range: -1 to 1, where >0.6 is healthy vegetation)
+Soil Moisture: ${soilMoisture}% (optimal: 30-60%)
+Temperature: ${temperature}°C
+Rainfall: ${rainfall}mm
 
-Respond in this exact JSON format:
-{
-  "degradation_level": "low|moderate|high",
-  "ai_recommendation": "specific actionable recommendations",
-  "flood_risk": "low|moderate|high",
-  "drought_risk": "low|moderate|high"
-}
-`;
+Based on this data, provide a JSON response with:
+1. degradation_level: "low", "moderate", or "high"
+2. ai_recommendation: Detailed restoration recommendations (2-3 sentences)
+3. flood_risk: "low", "moderate", or "high"
+4. drought_risk: "low", "moderate", or "high"
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+Consider:
+- NDVI < 0.3 indicates severe degradation
+- NDVI 0.3-0.6 indicates moderate vegetation health
+- NDVI > 0.6 indicates healthy vegetation
+- Soil moisture < 20% or > 80% indicates poor conditions
+- Rainfall > 100mm increases flood risk
+- Low rainfall + high temperature increases drought risk
+
+Provide actionable, specific recommendations for this location.`;
+
+    console.log('Calling Lovable AI for recommendation...');
+
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          {
-            role: 'system',
-            content: 'You are an expert land restoration and climate risk analyst. Analyze environmental data and provide structured assessments in JSON format.'
-          },
-          {
-            role: 'user',
-            content: context
-          }
+          { role: 'user', content: context }
         ],
-        temperature: 0.7,
+        response_format: { type: 'json_object' }
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      // Return fallback recommendation on AI API error
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('Lovable AI error:', aiResponse.status, errorText);
       return new Response(
         JSON.stringify({
           degradation_level: 'moderate',
           ai_recommendation: 'Implement sustainable land management practices. Monitor vegetation health regularly and consider reforestation efforts in degraded areas.',
-          flood_risk: 'low',
-          drought_risk: 'moderate',
+          flood_risk: rainfall > 100 ? 'high' : 'low',
+          drought_risk: (soilMoisture < 20 || temperature > 30) ? 'high' : 'moderate',
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    const aiData = await aiResponse.json();
+    const content = aiData.choices?.[0]?.message?.content;
 
-    console.log('AI response:', aiResponse);
-
-    // Parse JSON response
-    let result;
-    try {
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = aiResponse.match(/```json\n?([\s\S]*?)\n?```/) || aiResponse.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : aiResponse;
-      result = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error('Failed to parse AI response as JSON:', parseError);
-      // Fallback to default values
-      result = {
-        degradation_level: 'moderate',
-        ai_recommendation: aiResponse,
-        flood_risk: 'low',
-        drought_risk: 'low',
-      };
+    if (!content) {
+      throw new Error('No content in AI response');
     }
 
-    console.log('Parsed AI recommendation:', result);
+    let recommendation;
+    try {
+      recommendation = JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', content);
+      throw parseError;
+    }
+
+    console.log('AI recommendation generated successfully');
 
     return new Response(
-      JSON.stringify(result),
+      JSON.stringify(recommendation),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in generate-ai-recommendation function:', error);
-    // Return fallback recommendation on any error
+    console.error('Error in generate-ai-recommendation:', error);
+    
+    // Return intelligent fallback based on input data
+    const body = await req.json().catch(() => ({}));
+    const { ndviScore = 0.5, soilMoisture = 50, temperature = 20, rainfall = 0 } = body;
+    
     return new Response(
       JSON.stringify({
-        degradation_level: 'moderate',
-        ai_recommendation: 'Implement sustainable land management practices. Monitor vegetation health regularly and consider reforestation efforts in degraded areas.',
-        flood_risk: 'low',
-        drought_risk: 'moderate',
+        degradation_level: ndviScore < 0.3 ? 'high' : ndviScore < 0.6 ? 'moderate' : 'low',
+        ai_recommendation: 'Implement sustainable land management practices. Monitor vegetation health regularly using satellite data. Consider reforestation efforts in degraded areas and implement soil conservation techniques.',
+        flood_risk: rainfall > 100 ? 'high' : rainfall > 50 ? 'moderate' : 'low',
+        drought_risk: (soilMoisture < 20 || temperature > 30) ? 'high' : soilMoisture < 40 ? 'moderate' : 'low',
       }),
       { 
         status: 200,

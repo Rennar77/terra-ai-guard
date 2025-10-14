@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useDataCache } from '@/hooks/useDataCache';
 
 export interface LandDataEntry {
   id: string;
@@ -10,6 +11,7 @@ export interface LandDataEntry {
   ndvi_score: number | null;
   soil_moisture: number | null;
   temperature: number | null;
+  rainfall: number | null;
   degradation_level: string | null;
   ai_recommendation: string | null;
   flood_risk: string | null;
@@ -22,6 +24,7 @@ export const useLandData = () => {
   const [landData, setLandData] = useState<LandDataEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { getCachedData, setCachedData } = useDataCache();
 
   const fetchLandData = async () => {
     try {
@@ -95,29 +98,52 @@ export const useLandData = () => {
         return;
       }
 
-      // Fetch Sentinel satellite data and weather data in parallel
+      // Check cache first
+      const cacheKey = `${latitude.toFixed(4)}_${longitude.toFixed(4)}`;
+      const cachedData = getCachedData(cacheKey);
+
       let satelliteData = { ndviScore: 0.5, soilMoisture: 50 };
       let weatherData = { temperature: 20, rainfall: 0 };
       
-      try {
-        const [sentinelResponse, weatherResponse] = await Promise.all([
-          supabase.functions.invoke('fetch-sentinel-data', {
-            body: { latitude, longitude },
-          }),
-          supabase.functions.invoke('fetch-weather-data', {
-            body: { latitude, longitude },
-          })
-        ]);
+      if (cachedData) {
+        console.log('Using cached data for location');
+        satelliteData = {
+          ndviScore: cachedData.ndviScore,
+          soilMoisture: cachedData.soilMoisture,
+        };
+        weatherData = {
+          temperature: cachedData.temperature,
+          rainfall: cachedData.rainfall,
+        };
+      } else {
+        try {
+          const [sentinelResponse, weatherResponse] = await Promise.all([
+            supabase.functions.invoke('fetch-sentinel-data', {
+              body: { latitude, longitude },
+            }),
+            supabase.functions.invoke('fetch-weather-data', {
+              body: { latitude, longitude },
+            })
+          ]);
 
-        if (!sentinelResponse.error && sentinelResponse.data) {
-          satelliteData = sentinelResponse.data;
+          if (!sentinelResponse.error && sentinelResponse.data) {
+            satelliteData = sentinelResponse.data;
+          }
+          
+          if (!weatherResponse.error && weatherResponse.data) {
+            weatherData = weatherResponse.data;
+          }
+
+          // Cache the data
+          setCachedData(cacheKey, {
+            ndviScore: satelliteData.ndviScore,
+            soilMoisture: satelliteData.soilMoisture,
+            temperature: weatherData.temperature,
+            rainfall: weatherData.rainfall,
+          });
+        } catch (error) {
+          console.warn('Data fetch failed, using fallback:', error);
         }
-        
-        if (!weatherResponse.error && weatherResponse.data) {
-          weatherData = weatherResponse.data;
-        }
-      } catch (error) {
-        console.warn('Data fetch failed, using fallback:', error);
       }
 
       // Generate AI recommendation with fallback
@@ -156,6 +182,7 @@ export const useLandData = () => {
         ndvi_score: satelliteData.ndviScore,
         soil_moisture: satelliteData.soilMoisture,
         temperature: weatherData.temperature,
+        rainfall: weatherData.rainfall,
         degradation_level: aiData.degradation_level,
         ai_recommendation: aiData.ai_recommendation,
         flood_risk: aiData.flood_risk,

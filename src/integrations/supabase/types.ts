@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorite_locations: {
+        Row: {
+          created_at: string
+          id: string
+          latitude: number
+          location_name: string
+          longitude: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latitude: number
+          location_name: string
+          longitude: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latitude?: number
+          location_name?: string
+          longitude?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       land_data: {
         Row: {
           ai_recommendation: string | null
@@ -26,6 +53,7 @@ export type Database = {
           location_name: string
           longitude: number
           ndvi_score: number | null
+          rainfall: number | null
           soil_moisture: number | null
           temperature: number | null
           user_id: string | null
@@ -42,6 +70,7 @@ export type Database = {
           location_name: string
           longitude: number
           ndvi_score?: number | null
+          rainfall?: number | null
           soil_moisture?: number | null
           temperature?: number | null
           user_id?: string | null
@@ -58,6 +87,7 @@ export type Database = {
           location_name?: string
           longitude?: number
           ndvi_score?: number | null
+          rainfall?: number | null
           soil_moisture?: number | null
           temperature?: number | null
           user_id?: string | null

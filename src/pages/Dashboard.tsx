@@ -1,8 +1,9 @@
-import { Droplets, Thermometer, Cloud, Leaf, LogOut } from "lucide-react";
+import { Droplets, Thermometer, Cloud, Leaf, LogOut, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import DataCard from "@/components/DataCard";
 import MapView from "@/components/MapView";
 import AIRecommendation from "@/components/AIRecommendation";
+import FavoriteLocations from "@/components/FavoriteLocations";
 import LandDataTable from "@/components/LandDataTable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,7 @@ const Dashboard = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -43,12 +44,12 @@ const Dashboard = () => {
     ndvi: landData.reduce((sum, entry) => sum + (entry.ndvi_score || 0), 0) / landData.length,
     soilMoisture: landData.reduce((sum, entry) => sum + (entry.soil_moisture || 0), 0) / landData.length,
     temperature: landData.reduce((sum, entry) => sum + (entry.temperature || 0), 0) / landData.length,
-    rainfall: 125, // Mock data - can be extended with weather API
+    rainfall: landData.reduce((sum, entry) => sum + (entry.rainfall || 0), 0) / landData.length,
   } : {
-    ndvi: 0.67,
-    soilMoisture: 34,
-    rainfall: 125,
-    temperature: 24
+    ndvi: 0.5,
+    soilMoisture: 50,
+    rainfall: 0,
+    temperature: 20
   };
 
   return (
@@ -102,12 +103,12 @@ const Dashboard = () => {
             description="Average levels"
           />
           <DataCard
-            title="Rainfall Forecast"
-            value={aggregateData.rainfall}
+            title="Rainfall"
+            value={aggregateData.rainfall.toFixed(1)}
             unit="mm"
             icon={Cloud}
-            trend="up"
-            description="Next 7 days"
+            trend="neutral"
+            description="Current reading"
           />
           <DataCard
             title="Temperature"
@@ -120,12 +121,11 @@ const Dashboard = () => {
         </div>
 
         {/* Map and Recommendations */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <MapView />
-          </div>
-          <div className="lg:col-span-1">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <MapView />
+          <div className="space-y-6">
             <AIRecommendation />
+            <FavoriteLocations />
           </div>
         </div>
 
@@ -141,7 +141,7 @@ const Dashboard = () => {
             <CardContent>
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <p className="text-muted-foreground">Loading land data...</p>
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : (
                 <LandDataTable data={landData} onSendAlert={sendAlert} />

@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import { useLandData } from '@/hooks/useLandData';
+import { useFavoriteLocations } from '@/hooks/useFavoriteLocations';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,9 @@ import { supabase } from '@/integrations/supabase/client';
 const MapView = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markers = useRef<mapboxgl.Marker[]>([]);
   const { landData, analyzeLocation } = useLandData();
+  const { favorites, addFavorite } = useFavoriteLocations();
   const { toast } = useToast();
   const [analyzing, setAnalyzing] = useState(false);
   const [locationName, setLocationName] = useState('');
@@ -69,24 +72,35 @@ const MapView = () => {
     };
   }, []);
 
-  // Add markers for existing land data
+  // Add markers for existing land data with color coding
   useEffect(() => {
     if (!map.current || !landData.length) return;
 
-    landData.forEach((entry) => {
-      const color = entry.degradation_level === 'high' ? '#ef4444' : 
-                    entry.degradation_level === 'moderate' ? '#eab308' : '#22c55e';
+    // Clear existing markers
+    markers.current.forEach(marker => marker.remove());
+    markers.current = [];
 
-      new mapboxgl.Marker({ color })
+    landData.forEach((entry) => {
+      // Color code by degradation level
+      const color = entry.degradation_level === 'high' ? '#ef4444' :  // Red
+                    entry.degradation_level === 'moderate' ? '#eab308' : // Yellow
+                    '#22c55e'; // Green
+
+      const marker = new mapboxgl.Marker({ color })
         .setLngLat([entry.longitude, entry.latitude])
         .setPopup(
           new mapboxgl.Popup().setHTML(
-            `<strong>${entry.location_name}</strong><br/>
-             NDVI: ${entry.ndvi_score?.toFixed(2) || 'N/A'}<br/>
-             Status: ${entry.degradation_level || 'N/A'}`
+            `<div class="p-2">
+              <strong class="text-base">${entry.location_name}</strong><br/>
+              <span class="text-sm">NDVI: ${entry.ndvi_score?.toFixed(2) || 'N/A'}</span><br/>
+              <span class="text-sm">Soil Moisture: ${entry.soil_moisture?.toFixed(0) || 'N/A'}%</span><br/>
+              <span class="text-sm">Status: ${entry.degradation_level || 'N/A'}</span>
+            </div>`
           )
         )
         .addTo(map.current!);
+      
+      markers.current.push(marker);
     });
   }, [landData]);
 
@@ -127,23 +141,43 @@ const MapView = () => {
         <div ref={mapContainer} className="w-full h-[400px] rounded-lg overflow-hidden" />
         
         {selectedCoords && (
-          <div className="flex gap-2">
-            <Input
-              placeholder="Enter location name"
-              value={locationName}
-              onChange={(e) => setLocationName(e.target.value)}
-              disabled={analyzing}
-            />
-            <Button onClick={handleAnalyze} disabled={analyzing}>
-              {analyzing ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Analyzing...
-                </>
-              ) : (
-                'Analyze'
-              )}
-            </Button>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter location name"
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
+                disabled={analyzing}
+              />
+              <Button onClick={handleAnalyze} disabled={analyzing}>
+                {analyzing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Analyzing...
+                  </>
+                ) : (
+                  'Analyze'
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => {
+                  if (locationName.trim() && selectedCoords) {
+                    addFavorite(locationName, selectedCoords.lat, selectedCoords.lng);
+                  } else {
+                    toast({
+                      title: 'Missing Information',
+                      description: 'Please enter a location name first',
+                      variant: 'destructive',
+                    });
+                  }
+                }}
+                disabled={analyzing || !locationName.trim()}
+              >
+                <Star className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
