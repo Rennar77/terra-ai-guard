@@ -95,17 +95,29 @@ export const useLandData = () => {
         return;
       }
 
-      // Fetch NASA data with fallback
-      let nasaData = { ndviScore: 0.45, soilMoisture: 35, temperature: 24 };
+      // Fetch Sentinel satellite data and weather data in parallel
+      let satelliteData = { ndviScore: 0.5, soilMoisture: 50 };
+      let weatherData = { temperature: 20, rainfall: 0 };
+      
       try {
-        const { data, error } = await supabase.functions.invoke('fetch-nasa-data', {
-          body: { latitude, longitude },
-        });
-        if (!error && data) {
-          nasaData = data;
+        const [sentinelResponse, weatherResponse] = await Promise.all([
+          supabase.functions.invoke('fetch-sentinel-data', {
+            body: { latitude, longitude },
+          }),
+          supabase.functions.invoke('fetch-weather-data', {
+            body: { latitude, longitude },
+          })
+        ]);
+
+        if (!sentinelResponse.error && sentinelResponse.data) {
+          satelliteData = sentinelResponse.data;
+        }
+        
+        if (!weatherResponse.error && weatherResponse.data) {
+          weatherData = weatherResponse.data;
         }
       } catch (error) {
-        console.warn('NASA data fetch failed, using fallback:', error);
+        console.warn('Data fetch failed, using fallback:', error);
       }
 
       // Generate AI recommendation with fallback
@@ -122,9 +134,10 @@ export const useLandData = () => {
             locationName,
             latitude,
             longitude,
-            ndviScore: nasaData.ndviScore,
-            soilMoisture: nasaData.soilMoisture,
-            temperature: nasaData.temperature,
+            ndviScore: satelliteData.ndviScore,
+            soilMoisture: satelliteData.soilMoisture,
+            temperature: weatherData.temperature,
+            rainfall: weatherData.rainfall,
           },
         });
         if (!error && data) {
@@ -140,9 +153,9 @@ export const useLandData = () => {
         location_name: locationName,
         latitude,
         longitude,
-        ndvi_score: nasaData.ndviScore,
-        soil_moisture: nasaData.soilMoisture,
-        temperature: nasaData.temperature,
+        ndvi_score: satelliteData.ndviScore,
+        soil_moisture: satelliteData.soilMoisture,
+        temperature: weatherData.temperature,
         degradation_level: aiData.degradation_level,
         ai_recommendation: aiData.ai_recommendation,
         flood_risk: aiData.flood_risk,
@@ -160,8 +173,7 @@ export const useLandData = () => {
       fetchLandData();
 
       // Auto-send alert if high risk (rainfall > 150mm or high degradation)
-      const rainfall = 125; // This should come from weather API
-      if (aiData.degradation_level === 'high' || aiData.flood_risk === 'high' || rainfall > 150) {
+      if (aiData.degradation_level === 'high' || aiData.flood_risk === 'high' || weatherData.rainfall > 150) {
         toast({
           title: 'High Risk Detected',
           description: 'Consider sending a WhatsApp alert for this location',

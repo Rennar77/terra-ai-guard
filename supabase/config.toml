@@ -1,1 +1,16 @@
 project_id = "xtctdkfhpluhcotxzfwk"
+
+[functions.send-whatsapp-alert]
+verify_jwt = true
+
+[functions.fetch-sentinel-data]
+verify_jwt = true
+
+[functions.fetch-weather-data]
+verify_jwt = true
+
+[functions.generate-ai-recommendation]
+verify_jwt = true
+
+[functions.get-mapbox-token]
+verify_jwt = true
