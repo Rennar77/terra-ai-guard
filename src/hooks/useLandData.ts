@@ -208,7 +208,8 @@ export const useLandData = () => {
         description: `Location ${locationName} has been analyzed successfully`,
       });
 
-      // Data will auto-refresh via realtime subscription
+      // Immediately refresh to show new data
+      await fetchLandData();
 
       // Auto-send alert if high risk (rainfall > 150mm or high degradation)
       if (aiData.degradation_level === 'high' || aiData.flood_risk === 'high' || weatherData.rainfall > 150) {
