@@ -233,27 +233,47 @@ export const useLandData = () => {
   };
 
   useEffect(() => {
-    fetchLandData();
+    const setupRealtimeSubscription = async () => {
+      // Get current user to filter subscription
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    // Set up realtime subscription for automatic updates
-    const channel = supabase
-      .channel('land_data_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'land_data',
-        },
-        () => {
-          console.log('Land data changed, refetching...');
-          fetchLandData();
-        }
-      )
-      .subscribe();
+      await fetchLandData();
+
+      // Set up realtime subscription for automatic updates
+      const channel = supabase
+        .channel('land_data_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'land_data',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log('Land data changed, refetching...', payload);
+            fetchLandData();
+          }
+        )
+        .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Successfully subscribed to land_data changes');
+          }
+          if (err) {
+            console.error('Subscription error:', err);
+          }
+        });
+
+      return channel;
+    };
+
+    let channelPromise = setupRealtimeSubscription();
 
     return () => {
-      supabase.removeChannel(channel);
+      channelPromise.then(channel => {
+        if (channel) supabase.removeChannel(channel);
+      });
     };
   }, []);
 
