@@ -88,7 +88,20 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Twilio error:', response.status, errorText);
-      throw new Error(`Twilio API error: ${response.status}`);
+      
+      let errorMessage = `Twilio API error: ${response.status}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.code === 63007) {
+          errorMessage = 'WhatsApp number not activated. Please activate your Twilio WhatsApp sender in the Twilio console.';
+        } else {
+          errorMessage = errorJson.message || errorMessage;
+        }
+      } catch (e) {
+        // Use default error message
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();

@@ -49,6 +49,16 @@ export const useLandData = () => {
 
   const sendAlert = async (entry: LandDataEntry, phone: string) => {
     try {
+      // Validate phone number format (must start with +)
+      if (!phone.startsWith('+')) {
+        toast({
+          title: 'Invalid Phone Number',
+          description: 'Phone number must include country code (e.g., +1234567890)',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('send-whatsapp-alert', {
         body: {
           phone,
@@ -60,7 +70,10 @@ export const useLandData = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to send alert');
+      }
 
       // Update whatsapp_status
       await supabase
@@ -70,16 +83,15 @@ export const useLandData = () => {
 
       toast({
         title: 'Alert Sent',
-        description: `WhatsApp alert sent successfully for ${entry.location_name}`,
+        description: `WhatsApp alert sent successfully to ${phone}`,
       });
 
-      // Refresh data
-      fetchLandData();
-    } catch (error) {
+      // Data will auto-refresh via realtime subscription
+    } catch (error: any) {
       console.error('Error sending alert:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to send WhatsApp alert',
+        title: 'WhatsApp Alert Failed',
+        description: error.message || 'Failed to send WhatsApp alert. Please check your Twilio configuration.',
         variant: 'destructive',
       });
     }
@@ -222,6 +234,27 @@ export const useLandData = () => {
 
   useEffect(() => {
     fetchLandData();
+
+    // Set up realtime subscription for automatic updates
+    const channel = supabase
+      .channel('land_data_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'land_data',
+        },
+        () => {
+          console.log('Land data changed, refetching...');
+          fetchLandData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return { landData, loading, sendAlert, analyzeLocation, refetch: fetchLandData };
